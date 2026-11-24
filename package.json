@@ -2,7 +2,7 @@
   "name": "spaceflow",
   "private": true,
   "version": "0.1.0",
-  "description": "Plateforme de gestion et de réservation de ressources partagées",
+  "description": "Shared resource management and booking platform",
   "workspaces": ["backend", "frontend"],
   "scripts": {
     "test": "npm test --workspaces --if-present",

@@ -1,0 +1,15 @@
+{
+  "name": "@spaceflow/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SpaceFlow REST API",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}
