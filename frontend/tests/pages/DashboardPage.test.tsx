@@ -79,6 +79,27 @@ describe('DashboardPage (US-08)', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows cards instead of tables on phones', async () => {
+    // jsdom has no matchMedia: pretend every media query matches (= small screen).
+    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    }));
+    renderPage();
+
+    const upcomingList = await screen.findByRole('list', { name: 'Upcoming bookings' });
+    expect(within(upcomingList).getByText('Room A101')).toBeInTheDocument();
+    expect(
+      within(upcomingList).getByRole('button', { name: /^Cancel booking: Room A101/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+
+    // @ts-expect-error restore jsdom's default (no matchMedia) for the other tests
+    delete window.matchMedia;
+  });
+
   it('shows an empty state when I have no booking', async () => {
     api.listMyBookings.mockResolvedValue([]);
     renderPage();

@@ -11,6 +11,8 @@ import {
   TableHead,
   TableRow,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { cancelBooking, listMyBookings } from '../api/endpoints';
@@ -161,12 +163,54 @@ function BookingTable({
   renderStatus,
   renderAction,
 }: BookingTableProps) {
+  const isPhone = useMediaQuery(useTheme().breakpoints.down('sm'));
   const columns = renderAction ? 4 : 3;
+  const heading = (
+    <Typography variant="h3" component="h3" gutterBottom>
+      {title}
+    </Typography>
+  );
+
+  // Phones: a list of cards. A 4-column table is unreadable at 375 px.
+  if (isPhone) {
+    return (
+      <section>
+        {heading}
+        {bookings.length === 0 ? (
+          <Paper variant="outlined" sx={{ p: 2, color: 'text.secondary' }}>
+            {emptyText} {emptyAction}
+          </Paper>
+        ) : (
+          <Stack
+            component="ul"
+            aria-label={title}
+            spacing={1.5}
+            sx={{ listStyle: 'none', p: 0, m: 0 }}
+          >
+            {bookings.map((b) => (
+              <Paper component="li" key={b.id} variant="outlined" sx={{ p: 2 }}>
+                <Typography sx={{ fontWeight: 600 }}>{nameOf(b.resourceId)}</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  {formatSlot(b.start, b.end)}
+                </Typography>
+                <Stack
+                  direction="row"
+                  sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  {renderStatus(b)}
+                  {renderAction?.(b)}
+                </Stack>
+              </Paper>
+            ))}
+          </Stack>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section>
-      <Typography variant="h3" component="h3" gutterBottom>
-        {title}
-      </Typography>
+      {heading}
       <TableContainer component={Paper} variant="outlined">
         <Table size="small" aria-label={title}>
           <TableHead>
