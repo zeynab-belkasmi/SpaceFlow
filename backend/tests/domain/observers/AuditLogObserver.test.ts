@@ -33,11 +33,13 @@ describe('AuditLogObserver', () => {
     });
 
     expect(saved).toHaveLength(1);
-    expect(saved[0].id).toBe('log-1');
-    expect(saved[0].action).toBe(BookingEventType.BOOKING_CANCELLED);
-    expect(saved[0].bookingId).toBe('b1');
-    expect(saved[0].resourceId).toBe('r1');
-    expect(saved[0].actorId).toBe('admin-1');
-    expect(saved[0].occurredAt).toEqual(new Date('2026-12-01T09:00:00Z'));
+    expect(saved[0]).toMatchObject({
+      id: 'log-1',
+      action: BookingEventType.BOOKING_CANCELLED,
+      bookingId: 'b1',
+      resourceId: 'r1',
+      actorId: 'admin-1',
+      occurredAt: new Date('2026-12-01T09:00:00Z'),
+    });
   });
 });

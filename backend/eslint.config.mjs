@@ -19,6 +19,10 @@ export default tseslint.config(
     },
   },
 
+  // `expect(repo.save).toHaveBeenCalled()` passes a Jest mock, not a real method:
+  // `unbound-method` is a false positive there, so it is turned off in tests only.
+  { files: ['tests/**/*.ts'], rules: { '@typescript-eslint/unbound-method': 'off' } },
+
   // Plain JS files (like this config) are not part of any tsconfig: skip type-aware rules.
   { files: ['**/*.mjs', '**/*.js'], ...tseslint.configs.disableTypeChecked },
 
