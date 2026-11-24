@@ -22,8 +22,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       {children}
       <Snackbar
         open={current !== null}
-        autoHideDuration={5000}
-        onClose={() => setCurrent(null)}
+        // Success fades out; an error stays until dismissed, so it cannot be missed.
+        autoHideDuration={current?.severity === 'error' ? null : 4000}
+        onClose={(_event, reason) => {
+          if (reason === 'clickaway' && current?.severity === 'error') return;
+          setCurrent(null);
+        }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         {/* Snackbar needs a child even while closing, hence the fallback. */}

@@ -50,7 +50,9 @@ describe('DashboardPage (US-08)', () => {
     const upcomingTable = await screen.findByRole('table', { name: 'Upcoming bookings' });
 
     api.listMyBookings.mockResolvedValue([{ ...upcoming, status: 'CANCELLED' }, past, cancelled]);
-    await userEvent.click(within(upcomingTable).getByRole('button', { name: 'Cancel' }));
+    await userEvent.click(
+      within(upcomingTable).getByRole('button', { name: /^Cancel booking: Room A101/ }),
+    );
 
     expect(api.cancelBooking).toHaveBeenCalledWith('upcoming');
     expect(await screen.findByText('Booking cancelled.')).toBeInTheDocument();
@@ -68,7 +70,9 @@ describe('DashboardPage (US-08)', () => {
     renderPage();
     const upcomingTable = await screen.findByRole('table', { name: 'Upcoming bookings' });
 
-    await userEvent.click(within(upcomingTable).getByRole('button', { name: 'Cancel' }));
+    await userEvent.click(
+      within(upcomingTable).getByRole('button', { name: /^Cancel booking: Room A101/ }),
+    );
 
     expect(
       await screen.findByText('A booking cannot be cancelled once it has started.'),

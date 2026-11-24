@@ -1,7 +1,7 @@
+import EventBusyOutlined from '@mui/icons-material/EventBusyOutlined';
 import {
   Alert,
   Button,
-  CircularProgress,
   Paper,
   Stack,
   Table,
@@ -15,13 +15,20 @@ import {
 import { useEffect, useState } from 'react';
 import { cancelBooking, listMyBookings } from '../api/endpoints';
 import { Booking } from '../api/types';
+import { LoadingRows } from '../components/LoadingRows';
+import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
 import { useNotify } from '../context/NotificationContext';
 import { errorMessage, formatSlot } from '../format';
 import { useResourceNames } from '../hooks/useResourceNames';
 
+interface DashboardPageProps {
+  /** Shown as the action of the empty state. */
+  onBrowseCatalog?: () => void;
+}
+
 /** My bookings, upcoming and past, with one-click cancellation (US-08). */
-export function DashboardPage() {
+export function DashboardPage({ onBrowseCatalog }: DashboardPageProps) {
   const notify = useNotify();
   const nameOf = useResourceNames();
   const [lists, setLists] = useState<{ upcoming: Booking[]; history: Booking[] } | null>(null);
@@ -68,19 +75,43 @@ export function DashboardPage() {
     }
   };
 
+  const header = (
+    <PageHeader title="My bookings">
+      Your upcoming reservations and history. You can cancel a booking until it starts.
+    </PageHeader>
+  );
+
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return (
+      <>
+        {header}
+        <Alert severity="error">{error}</Alert>
+      </>
+    );
   }
   if (!lists) {
-    return <CircularProgress aria-label="Loading" />;
+    return (
+      <>
+        {header}
+        <LoadingRows label="Loading your bookings" />
+      </>
+    );
   }
   const { upcoming, history } = lists;
 
   return (
     <Stack spacing={4}>
+      {header}
       <BookingTable
         title="Upcoming bookings"
         emptyText="No upcoming booking."
+        emptyAction={
+          onBrowseCatalog && (
+            <Button size="small" onClick={onBrowseCatalog}>
+              Browse the catalog
+            </Button>
+          )
+        }
         bookings={upcoming}
         nameOf={nameOf}
         renderStatus={(b) => <StatusChip status={b.status} />}
@@ -88,10 +119,13 @@ export function DashboardPage() {
           <Button
             size="small"
             color="error"
+            startIcon={<EventBusyOutlined aria-hidden />}
             disabled={cancellingId !== null}
             onClick={() => cancel(b.id)}
+            // Every row has a "Cancel" button: the accessible name says WHICH booking.
+            aria-label={`Cancel booking: ${nameOf(b.resourceId)}, ${formatSlot(b.start, b.end)}`}
           >
-            Cancel
+            {cancellingId === b.id ? 'Cancelling…' : 'Cancel'}
           </Button>
         )}
       />
@@ -111,6 +145,7 @@ export function DashboardPage() {
 interface BookingTableProps {
   title: string;
   emptyText: string;
+  emptyAction?: React.ReactNode;
   bookings: Booking[];
   nameOf: (id: string) => string;
   renderStatus: (b: Booking) => React.ReactNode;
@@ -120,6 +155,7 @@ interface BookingTableProps {
 function BookingTable({
   title,
   emptyText,
+  emptyAction,
   bookings,
   nameOf,
   renderStatus,
@@ -128,7 +164,7 @@ function BookingTable({
   const columns = renderAction ? 4 : 3;
   return (
     <section>
-      <Typography variant="h6" component="h2" gutterBottom>
+      <Typography variant="h3" component="h3" gutterBottom>
         {title}
       </Typography>
       <TableContainer component={Paper} variant="outlined">
@@ -144,7 +180,9 @@ function BookingTable({
           <TableBody>
             {bookings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns}>{emptyText}</TableCell>
+                <TableCell colSpan={columns} sx={{ color: 'text.secondary' }}>
+                  {emptyText} {emptyAction}
+                </TableCell>
               </TableRow>
             ) : (
               bookings.map((b) => (

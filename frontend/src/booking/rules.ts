@@ -13,6 +13,12 @@ const LIMITS: Record<Role, { subject: string; maxHours: number; maxDaysAhead: nu
   ADMIN: { subject: 'A faculty member', maxHours: 8, maxDaysAhead: 30 }, // Same rules as faculty.
 };
 
+/** A one-line reminder of the rules, shown under the form fields. */
+export function rulesSummary(role: Role): string {
+  const { maxHours, maxDaysAhead } = LIMITS[role];
+  return `Your role allows up to ${maxHours} hours per booking, at most ${maxDaysAhead} days ahead.`;
+}
+
 const MS_PER_HOUR = 60 * 60 * 1000;
 const MS_PER_DAY = 24 * MS_PER_HOUR;
 

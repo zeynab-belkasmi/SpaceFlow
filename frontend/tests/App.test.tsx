@@ -35,7 +35,27 @@ const renderApp = () =>
 describe('App navigation', () => {
   beforeEach(() => {
     localStorage.clear();
+    window.location.hash = '';
     api.listUsers.mockResolvedValue(users);
+  });
+
+  it('opens the section named in the URL (deep link) and keeps the URL in sync', async () => {
+    window.location.hash = '#mine';
+    renderApp();
+
+    expect(await screen.findByText('Stub dashboard')).toBeInTheDocument();
+    expect(document.title).toBe('My bookings · SpaceFlow');
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Catalog' }));
+    expect(window.location.hash).toBe('#catalog');
+  });
+
+  it('falls back to the catalog when a non-admin opens #admin', async () => {
+    window.location.hash = '#admin';
+    renderApp();
+
+    expect(await screen.findByRole('button', { name: 'Stub: book Room A101' })).toBeInTheDocument();
+    expect(screen.queryByText('Stub admin')).not.toBeInTheDocument();
   });
 
   it('shows the Admin tab to admins only', async () => {

@@ -1,6 +1,5 @@
 import {
   Alert,
-  CircularProgress,
   Paper,
   Tab,
   Table,
@@ -14,6 +13,8 @@ import {
 import { useEffect, useState } from 'react';
 import { listAllBookings, listAuditLogs } from '../api/endpoints';
 import { AuditLog, Booking } from '../api/types';
+import { LoadingRows } from '../components/LoadingRows';
+import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
 import { useCurrentUser } from '../context/CurrentUserContext';
 import { errorMessage, formatDateTime, formatSlot } from '../format';
@@ -44,15 +45,32 @@ export function AdminPage() {
       .catch((e: unknown) => setError(errorMessage(e)));
   }, []);
 
+  const header = (
+    <PageHeader title="Administration">
+      Every booking made on the platform, and the audit log of confirmations and cancellations.
+    </PageHeader>
+  );
+
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return (
+      <>
+        {header}
+        <Alert severity="error">{error}</Alert>
+      </>
+    );
   }
   if (!bookings || !logs) {
-    return <CircularProgress aria-label="Loading" />;
+    return (
+      <>
+        {header}
+        <LoadingRows label="Loading history" />
+      </>
+    );
   }
 
   return (
     <>
+      {header}
       <Tabs value={tab} onChange={(_e, value: number) => setTab(value)} sx={{ mb: 2 }}>
         <Tab label={`All bookings (${bookings.length})`} />
         <Tab label={`Audit log (${logs.length})`} />

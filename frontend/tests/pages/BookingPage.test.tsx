@@ -81,12 +81,38 @@ describe('BookingPage (US-03, US-07)', () => {
     expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
   });
 
-  it('shows the free slots of the chosen day', async () => {
+  it('shows the slots already booked on the chosen day, in local time', async () => {
+    api.getAvailabilities.mockResolvedValue({
+      resourceId: roomA101.id,
+      date: '2026-12-01',
+      status: 'AVAILABLE',
+      busy: [{ start: '2026-12-01T13:00:00.000Z', end: '2026-12-01T14:00:00.000Z' }],
+      free: [],
+    });
     renderPage();
     await chooseRoomAndSlot('10:00', '11:00');
 
     expect(api.getAvailabilities).toHaveBeenCalledWith(roomA101.id, '2026-12-01');
-    expect(await screen.findByText(/Free on this day/)).toBeInTheDocument();
+    expect(await screen.findByText(/Already booked on this day/)).toBeInTheDocument();
+  });
+
+  it('says when nothing is booked yet on the chosen day', async () => {
+    renderPage();
+    await chooseRoomAndSlot('10:00', '11:00');
+
+    expect(await screen.findByText('No booking yet on this day.')).toBeInTheDocument();
+  });
+
+  it('links the slot fields to the rules and the error message (accessibility)', async () => {
+    renderPage();
+    await chooseRoomAndSlot('10:00', '13:00');
+
+    const end = screen.getByLabelText('End time');
+    expect(end).toHaveAttribute('aria-invalid', 'true');
+    expect(end).toHaveAccessibleDescription(
+      expect.stringContaining('A student cannot book more than 2 hours at a time.'),
+    );
+    expect(end).toHaveAccessibleDescription(expect.stringContaining('up to 2 hours per booking'));
   });
 
   it('books after confirmation, then notifies and calls onBooked', async () => {

@@ -1,14 +1,12 @@
-import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
+// Self-hosted font (bundled by Vite): no request to a third-party font service.
+import '@fontsource-variable/plus-jakarta-sans';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { CurrentUserProvider } from './context/CurrentUserContext';
 import { NotificationProvider } from './context/NotificationContext';
-
-const theme = createTheme({
-  palette: { primary: { main: '#3949ab' } },
-  shape: { borderRadius: 8 },
-});
+import { theme } from './theme';
 
 const root = document.getElementById('root');
 if (!root) {

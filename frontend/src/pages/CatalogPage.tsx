@@ -1,3 +1,7 @@
+import AddOutlined from '@mui/icons-material/AddOutlined';
+import BuildOutlined from '@mui/icons-material/BuildOutlined';
+import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
+import EventAvailableOutlined from '@mui/icons-material/EventAvailableOutlined';
 import {
   Alert,
   Button,
@@ -8,11 +12,14 @@ import {
   Paper,
   Stack,
   TextField,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 import { createResource, listResources, ResourceQuery, updateResource } from '../api/endpoints';
 import { Page, Resource, ResourceCategory, ResourceStatus } from '../api/types';
+import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
 import { useCurrentUser } from '../context/CurrentUserContext';
 import { useNotify } from '../context/NotificationContext';
@@ -27,6 +34,8 @@ export function CatalogPage({ onBook }: CatalogPageProps) {
   const { user } = useCurrentUser();
   const notify = useNotify();
   const isAdmin = user.role === 'ADMIN';
+  // On phones, secondary columns are hidden so that Status and the Book action stay visible.
+  const isPhone = useMediaQuery(useTheme().breakpoints.down('sm'));
 
   const [category, setCategory] = useState<ResourceCategory | ''>('');
   const [status, setStatus] = useState<ResourceStatus | ''>('');
@@ -92,7 +101,7 @@ export function CatalogPage({ onBook }: CatalogPageProps) {
   };
 
   const columns: GridColDef<Resource>[] = [
-    { field: 'name', headerName: 'Name', flex: 1, minWidth: 180 },
+    { field: 'name', headerName: 'Name', flex: 1, minWidth: isPhone ? 100 : 140 },
     {
       field: 'category',
       headerName: 'Category',
@@ -103,21 +112,42 @@ export function CatalogPage({ onBook }: CatalogPageProps) {
     {
       field: 'status',
       headerName: 'Status',
-      width: 140,
+      width: isPhone ? 118 : 140,
       renderCell: ({ row }) => <StatusChip status={row.status} />,
     },
     {
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
-      width: isAdmin ? 300 : 120,
+      width: isAdmin ? 290 : isPhone ? 84 : 110,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', height: '100%' }}>
-          <Button size="small" disabled={row.status !== 'AVAILABLE'} onClick={() => onBook(row)}>
+          <Button
+            size="small"
+            variant="outlined"
+            // Text only on phones, to fit the column; the icon is decorative anyway.
+            {...(!isPhone && { startIcon: <EventAvailableOutlined aria-hidden /> })}
+            disabled={row.status !== 'AVAILABLE'}
+            onClick={() => onBook(row)}
+            // Visible text "Book" is the same on every row; the accessible name is not.
+            aria-label={`Book ${row.name}`}
+          >
             Book
           </Button>
           {isAdmin && (
-            <Button size="small" color="warning" onClick={() => toggleMaintenance(row)}>
+            <Button
+              size="small"
+              color="warning"
+              startIcon={
+                row.status === 'AVAILABLE' ? (
+                  <BuildOutlined aria-hidden />
+                ) : (
+                  <CheckCircleOutlined aria-hidden />
+                )
+              }
+              onClick={() => toggleMaintenance(row)}
+              aria-label={`${row.status === 'AVAILABLE' ? 'Set maintenance' : 'Set available'}: ${row.name}`}
+            >
               {row.status === 'AVAILABLE' ? 'Set maintenance' : 'Set available'}
             </Button>
           )}
@@ -128,7 +158,15 @@ export function CatalogPage({ onBook }: CatalogPageProps) {
 
   return (
     <Stack spacing={2}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: 'center' }}>
+      <PageHeader title="Catalog">
+        Rooms and equipment you can book. Filter the list, then choose “Book”.
+      </PageHeader>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        // Full-width fields on phones, a single row on larger screens.
+        sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
+      >
         <TextField
           select
           size="small"
@@ -136,7 +174,7 @@ export function CatalogPage({ onBook }: CatalogPageProps) {
           value={category}
           onChange={(e) => filterChanged(setCategory)(e.target.value as ResourceCategory | '')}
           slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-          sx={{ minWidth: 160 }}
+          sx={{ minWidth: { sm: 160 } }}
         >
           <option value="">All</option>
           <option value="ROOM">Room</option>
@@ -149,7 +187,7 @@ export function CatalogPage({ onBook }: CatalogPageProps) {
           value={status}
           onChange={(e) => filterChanged(setStatus)(e.target.value as ResourceStatus | '')}
           slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-          sx={{ minWidth: 160 }}
+          sx={{ minWidth: { sm: 160 } }}
         >
           <option value="">All</option>
           <option value="AVAILABLE">Available</option>
@@ -161,11 +199,16 @@ export function CatalogPage({ onBook }: CatalogPageProps) {
           label="Min. capacity"
           value={minCapacity}
           onChange={(e) => filterChanged(setMinCapacity)(e.target.value)}
-          slotProps={{ htmlInput: { min: 1 } }}
-          sx={{ width: 150 }}
+          slotProps={{ htmlInput: { min: 1, inputMode: 'numeric' } }}
+          sx={{ width: { sm: 150 } }}
         />
         {isAdmin && (
-          <Button variant="contained" onClick={() => setCreating(true)} sx={{ ml: { sm: 'auto' } }}>
+          <Button
+            variant="contained"
+            startIcon={<AddOutlined aria-hidden />}
+            onClick={() => setCreating(true)}
+            sx={{ ml: { sm: 'auto' } }}
+          >
             New resource
           </Button>
         )}
@@ -184,6 +227,7 @@ export function CatalogPage({ onBook }: CatalogPageProps) {
           paginationModel={pagination}
           onPaginationModelChange={setPagination}
           pageSizeOptions={[5, 10, 20]}
+          columnVisibilityModel={{ category: !isPhone, capacity: !isPhone }}
           disableRowSelectionOnClick
           autoHeight
         />
