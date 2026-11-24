@@ -1,0 +1,8 @@
+{
+  "*.ts": [
+    "eslint --fix --max-warnings 0",
+    "prettier --write",
+    "jest --bail --findRelatedTests --passWithNoTests"
+  ],
+  "!(*.ts)": "prettier --write --ignore-unknown"
+}
