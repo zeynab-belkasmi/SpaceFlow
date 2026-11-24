@@ -194,6 +194,8 @@ Other choices worth knowing:
 - On the frontend, an **Axios interceptor** adds the auth header and turns every failure into a typed `ApiError`, and the client checks the quotas for instant feedback. The server stays the source of truth.
 - **Code splitting**: each page is loaded on demand (`React.lazy`), and React, MUI and the DataGrid are split into separate vendor files that browsers keep cached across releases.
 
+Every significant choice, with the alternatives considered and the trade-offs, is recorded in the [decision log](docs/decision-log.md).
+
 ## API Reference
 
 Base URL: `http://localhost:3000/api/v1`. The full, interactive specification is at `/api-docs`, and the raw document at `/api-docs.json`.
@@ -264,7 +266,9 @@ SpaceFlow/
 │   │   └── theme.ts         # design system (colours, typography)
 │   └── tests/
 ├── scripts/dev.mjs          # `npm run dev`: starts the API and the web client together
-├── docs/screenshots/
+├── docs/
+│   ├── decision-log.md      # design decisions and trade-offs
+│   └── screenshots/
 └── .github/workflows/ci.yml
 ```
 
