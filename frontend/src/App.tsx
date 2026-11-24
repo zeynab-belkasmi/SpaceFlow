@@ -4,13 +4,23 @@ import EventNoteOutlined from '@mui/icons-material/EventNoteOutlined';
 import Inventory2Outlined from '@mui/icons-material/Inventory2Outlined';
 import MeetingRoomOutlined from '@mui/icons-material/MeetingRoomOutlined';
 import { AppBar, Box, Container, Link, Tab, Tabs, Toolbar, Typography } from '@mui/material';
-import { ReactElement, useEffect, useState, useSyncExternalStore } from 'react';
+import { lazy, ReactElement, Suspense, useEffect, useState, useSyncExternalStore } from 'react';
+import { LoadingRows } from './components/LoadingRows';
 import { UserPicker } from './components/UserPicker';
 import { useCurrentUser } from './context/CurrentUserContext';
-import { AdminPage } from './pages/AdminPage';
-import { BookingPage } from './pages/BookingPage';
-import { CatalogPage } from './pages/CatalogPage';
-import { DashboardPage } from './pages/DashboardPage';
+
+// Code splitting: each page (and the libraries only it uses, like the DataGrid) becomes
+// its own file, downloaded the first time the page is opened.
+const CatalogPage = lazy(() =>
+  import('./pages/CatalogPage').then((m) => ({ default: m.CatalogPage })),
+);
+const BookingPage = lazy(() =>
+  import('./pages/BookingPage').then((m) => ({ default: m.BookingPage })),
+);
+const DashboardPage = lazy(() =>
+  import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+);
+const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 
 type Section = 'catalog' | 'book' | 'mine' | 'admin';
 
@@ -110,27 +120,30 @@ function Workspace({ isAdmin }: { isAdmin: boolean }) {
       </Tabs>
 
       <Box component="main" id="content" role="tabpanel" aria-labelledby={`tab-${section}`}>
-        {section === 'catalog' && (
-          <CatalogPage
-            onBook={(resource) => {
-              setBookResourceId(resource.id);
-              go('book');
-            }}
-          />
-        )}
-        {section === 'book' && (
-          <BookingPage
-            // A new key when the preselected resource changes resets the form.
-            key={bookResourceId ?? 'none'}
-            {...(bookResourceId !== undefined && { initialResourceId: bookResourceId })}
-            onBooked={() => {
-              setBookResourceId(undefined);
-              go('mine');
-            }}
-          />
-        )}
-        {section === 'mine' && <DashboardPage onBrowseCatalog={() => go('catalog')} />}
-        {section === 'admin' && <AdminPage />}
+        {/* Shown while a page's code is downloading. */}
+        <Suspense fallback={<LoadingRows label="Loading page" />}>
+          {section === 'catalog' && (
+            <CatalogPage
+              onBook={(resource) => {
+                setBookResourceId(resource.id);
+                go('book');
+              }}
+            />
+          )}
+          {section === 'book' && (
+            <BookingPage
+              // A new key when the preselected resource changes resets the form.
+              key={bookResourceId ?? 'none'}
+              {...(bookResourceId !== undefined && { initialResourceId: bookResourceId })}
+              onBooked={() => {
+                setBookResourceId(undefined);
+                go('mine');
+              }}
+            />
+          )}
+          {section === 'mine' && <DashboardPage onBrowseCatalog={() => go('catalog')} />}
+          {section === 'admin' && <AdminPage />}
+        </Suspense>
       </Box>
     </Container>
   );

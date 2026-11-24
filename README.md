@@ -92,15 +92,13 @@ The project is a full-stack TypeScript application (Express API + React client).
    npm install
    ```
 
-4. **Start the app**: run the API and the web client in two terminals
+4. **Start the app**: one command starts the API and the web client together
 
    ```bash
-   # Terminal 1: REST API on http://localhost:3000
-   npm run dev -w backend
-
-   # Terminal 2: web client on http://localhost:5173
-   npm run dev -w frontend
+   npm run dev
    ```
+
+   Then open **http://localhost:5173** for the web client. The API runs on http://localhost:3000. Logs are prefixed `[api]` and `[web]`, and Ctrl+C stops both. To run one side only, use `npm run dev -w backend` or `npm run dev -w frontend`.
 
    No database or `.env` file is needed: data is stored in memory and seeded on startup. In development, the frontend forwards `/api` calls to the backend through a Vite proxy.
 
@@ -194,6 +192,9 @@ Other choices worth knowing:
 - **Domain errors carry a code, not an HTTP status.** The presentation layer maps `SLOT_CONFLICT` to 409, `QUOTA_EXCEEDED` to 422, and so on.
 - **Repositories store copies**, like a real database, so a forgotten `save()` fails in tests instead of in production.
 - On the frontend, an **Axios interceptor** adds the auth header and turns every failure into a typed `ApiError`, and the client checks the quotas for instant feedback. The server stays the source of truth.
+- **Code splitting**: each page is loaded on demand (`React.lazy`), and React, MUI and the DataGrid are split into separate vendor files that browsers keep cached across releases.
+
+Every significant choice, with the alternatives considered and the trade-offs, is recorded in the [decision log](docs/decision-log.md).
 
 ## API Reference
 
@@ -264,7 +265,10 @@ SpaceFlow/
 │   │   ├── pages/           # Catalog, Book, My bookings, Admin
 │   │   └── theme.ts         # design system (colours, typography)
 │   └── tests/
-├── docs/screenshots/
+├── scripts/dev.mjs          # `npm run dev`: starts the API and the web client together
+├── docs/
+│   ├── decision-log.md      # design decisions and trade-offs
+│   └── screenshots/
 └── .github/workflows/ci.yml
 ```
 
