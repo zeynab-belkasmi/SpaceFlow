@@ -6,10 +6,22 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@swc/core": "^1.16.22",
+    "@swc/jest": "^0.2.39",
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.6.6",
-    "typescript": "^7.0.2"
+    "eslint": "^10.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.5.2",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.74.0"
   }
 }
