@@ -23,6 +23,24 @@ export default tseslint.config(
   // `unbound-method` is a false positive there, so it is turned off in tests only.
   { files: ['tests/**/*.ts'], rules: { '@typescript-eslint/unbound-method': 'off' } },
 
+  // HTTP tests read `response.body`, which is untyped JSON (`any`) by nature.
+  {
+    files: ['tests/presentation/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+    },
+  },
+
+  // A leading underscore marks a parameter as intentionally unused, e.g. `_next` in an
+  // Express error handler, which needs 4 parameters to be recognised as one.
+  {
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+
   // Plain JS files (like this config) are not part of any tsconfig: skip type-aware rules.
   { files: ['**/*.mjs', '**/*.js'], ...tseslint.configs.disableTypeChecked },
 
